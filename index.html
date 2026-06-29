@@ -314,6 +314,7 @@
       const [tab,setTab]=useState("tablero");
       const [filtro,setFiltro]=useState("todos");
       const [busqueda,setBusqueda]=useState("");
+      const [orden,setOrden]=useState("numero");
       const [sync,setSync]=useState("cargando");
 
       useEffect(()=>{
@@ -523,6 +524,17 @@
                     {{todos:"Todos",reservado:"Reservados",pagado:"Pagados"}[f]}
                   </button>
                 ))}
+                <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:"auto"}}>
+                  <span style={{color:"#4A6070",fontSize:11,whiteSpace:"nowrap"}}>Ordenar:</span>
+                  {["numero","nombre"].map(o=>(
+                    <button key={o} onClick={()=>setOrden(o)} style={{padding:"10px 14px",borderRadius:8,
+                      border:"1px solid",borderColor:orden===o?"#7A9BB5":"#2E4A62",
+                      background:orden===o?"#1E2D3D":"transparent",
+                      color:orden===o?"#E8F4FF":"#4A6070",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                      {{numero:"# Número",nombre:"A–Z Nombre"}[o]}
+                    </button>
+                  ))}
+                </div>
               </div>
               {participantes.length===0
                 ?<div style={{textAlign:"center",color:"#4A6070",padding:60,fontSize:15}}>
@@ -530,7 +542,12 @@
                     <span style={{fontSize:13}}>Haz clic en un número en el tablero para registrar.</span>
                   </div>
                 :<div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  {participantes.sort((a,b)=>(b.esGanador?1:0)-(a.esGanador?1:0)||a.numero-b.numero).map(n=>(
+                  {participantes.sort((a,b)=>{
+                      if(b.esGanador&&!a.esGanador)return 1;
+                      if(a.esGanador&&!b.esGanador)return -1;
+                      if(orden==="nombre")return String(a.nombre||"").localeCompare(String(b.nombre||""),"es");
+                      return a.numero-b.numero;
+                    }).map(n=>(
                     <div key={n.numero} style={{background:n.esGanador?"#1a0f00":"#0F1923",
                       border:`1px solid ${n.esGanador?"#FF6B00":"#1C2F40"}`,borderRadius:10,
                       padding:"12px 16px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",
