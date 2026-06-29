@@ -370,9 +370,9 @@
         if(filtro!=="todos"&&n.estado!==filtro)return false;
         if(busqueda){
           const q=busqueda.toLowerCase();
-          const enNombre=(n.nombre||"").toLowerCase().includes(q);
+          const enNombre=String(n.nombre||"").toLowerCase().includes(q);
           const enNumero=String(n.numero).includes(busqueda);
-          const enTelefono=(n.telefono||"").toLowerCase().includes(q);
+          const enTelefono=String(n.telefono||"").toLowerCase().includes(q);
           if(!enNombre&&!enNumero&&!enTelefono)return false;
         }
         return true;
