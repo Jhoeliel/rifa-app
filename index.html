@@ -368,8 +368,13 @@
       const participantes=numeros.filter(n=>{
         if(n.estado===ESTADO.disponible)return false;
         if(filtro!=="todos"&&n.estado!==filtro)return false;
-        if(busqueda&&!n.nombre.toLowerCase().includes(busqueda.toLowerCase())&&
-           !String(n.numero).includes(busqueda)&&!n.telefono.includes(busqueda))return false;
+        if(busqueda){
+          const q=busqueda.toLowerCase();
+          const enNombre=(n.nombre||"").toLowerCase().includes(q);
+          const enNumero=String(n.numero).includes(busqueda);
+          const enTelefono=(n.telefono||"").toLowerCase().includes(q);
+          if(!enNombre&&!enNumero&&!enTelefono)return false;
+        }
         return true;
       });
 
@@ -508,7 +513,8 @@
                 <input value={busqueda} onChange={e=>setBusqueda(e.target.value)}
                   placeholder="Buscar por nombre, N° o teléfono..."
                   style={{flex:1,minWidth:200,background:"#111C27",border:"1px solid #2E4A62",
-                    borderRadius:8,color:"#E8F4FF",padding:"10px 14px",fontSize:13,outline:"none"}} />
+                    borderRadius:8,color:"#E8F4FF",padding:"10px 14px",fontSize:13,outline:"none",
+                    WebkitTextFillColor:"#E8F4FF",caretColor:"#F5C842"}} />
                 {["todos","reservado","pagado"].map(f=>(
                   <button key={f} onClick={()=>setFiltro(f)} style={{padding:"10px 16px",borderRadius:8,
                     border:"1px solid",borderColor:filtro===f?"#F5C842":"#2E4A62",
