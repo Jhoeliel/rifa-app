@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Rifa — Elige tus números</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0F1923; font-family: 'Inter', system-ui, sans-serif; color: #E8F4FF; min-height: 100vh; }
+
+    /* Header */
+    .header {
+      background: #0a1520;
+      border-bottom: 1px solid #1C2F40;
+      padding: 16px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 { color: #F5C842; font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+    .header p  { color: #7A9BB5; font-size: 13px; margin-top: 4px; }
+
+    /* Leyenda */
+    .leyenda {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 14px 20px;
+      border-bottom: 1px solid #1C2F40;
+      background: #0a1520;
+    }
+    .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #7A9BB5; }
+    .dot { width: 14px; height: 14px; border-radius: 4px; }
+
+    /* Precio */
+    .precio-badge {
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      color: #7A9BB5;
+      background: #111C27;
+      border-bottom: 1px solid #1C2F40;
+    }
+    .precio-badge span { color: #F5C842; font-weight: 700; }
+
+    /* Grilla */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+      gap: 6px;
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .num-btn {
+      border-radius: 8px;
+      padding: 12px 4px;
+      font-size: 15px;
+      font-weight: 800;
+      border: 1px solid;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      line-height: 1;
+      transition: transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .num-btn:active { transform: scale(0.93); }
+
+    /* Estados */
+    .disponible  { background: #1C2A38; border-color: #2E4A62; color: #7A9BB5; }
+    .ocupado     { background: #2D0A0A; border-color: #7A1A1A; color: #FF6B6B; cursor: not-allowed; }
+    .seleccionado { background: #0D3320; border-color: #1A8A4A; color: #2ECC71;
+                    box-shadow: 0 0 10px rgba(46,204,113,0.3); }
+
+    .num-btn .tag {
+      font-size: 7px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      opacity: 0.8;
+    }
+
+    /* Barra inferior fija */
+    .barra-bottom {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #0a1520;
+      border-top: 1px solid #1C2F40;
+      padding: 14px 20px;
+      z-index: 100;
+    }
+
+    .resumen {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 600px;
+      margin: 0 auto;
+      gap: 12px;
+    }
+
+    .resumen-info { flex: 1; }
+    .resumen-info .count {
+      color: #2ECC71;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .resumen-info .count span { color: #7A9BB5; font-size: 12px; font-weight: 400; }
+    .resumen-info .total {
+      color: #F5C842;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .btn-enviar {
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .btn-enviar:disabled {
+      background: #1C2F40;
+      color: #4A6070;
+      cursor: not-allowed;
+    }
+
+    /* Espaciado para la barra fija */
+    .espaciado { height: 90px; }
+
+    /* Cargando */
+    .cargando {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 12px;
+    }
+    .cargando .emoji { font-size: 32px; }
+    .cargando p { color: #7A9BB5; font-size: 14px; }
+
+    /* Numeros seleccionados preview */
+    .nums-seleccionados {
+      font-size: 11px;
+      color: #2ECC71;
+      margin-top: 2px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎰 Rifa — Elige tus números</h1>
+  <p>Toca los números que deseas apartar</p>
+</div>
+
+<div class="leyenda">
+  <div class="leyenda-item"><div class="dot" style="background:#1C2A38;border:1px solid #2E4A62"></div> Disponible</div>
+  <div class="leyenda-item"><div class="dot" style="background:#2D0A0A;border:1px solid #7A1A1A"></div> Ocupado</div>
+  <div class="leyenda-item"><div class="dot" style="background:#0D3320;border:1px solid #1A8A4A"></div> Seleccionado</div>
+</div>
+
+<div class="precio-badge">Precio por número: <span>S/ 10.00</span></div>
+
+<div id="contenido">
+  <div class="cargando">
+    <div class="emoji">⏳</div>
+    <p>Cargando números disponibles...</p>
+  </div>
+</div>
+
+<div class="barra-bottom">
+  <div class="resumen">
+    <div class="resumen-info">
+      <div class="count" id="count">0 <span>números seleccionados</span></div>
+      <div class="total" id="total"></div>
+      <div class="nums-seleccionados" id="nums-preview"></div>
+    </div>
+    <button class="btn-enviar" id="btn-enviar" disabled onclick="enviarWhatsApp()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      Enviar por WhatsApp
+    </button>
+  </div>
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWFVVMPPtyfa0IETf0ZUV8PR2duRQDmNQXQmReeuPGij_7AoOxzir1y26O8cTOqQXp/exec";
+  const WHATSAPP_NUM = "51966036549";
+  const PRECIO = 10;
+  const TOTAL = 150;
+
+  let seleccionados = new Set();
+  let numerosOcupados = new Set();
+
+  async function cargar() {
+    try {
+      const res = await fetch(APPS_SCRIPT_URL);
+      const json = await res.json();
+
+      if (json.ok && json.data) {
+        json.data.forEach(row => {
+          const num = Number(row.numero);
+          if (row.estado === "reservado" || row.estado === "pagado") {
+            numerosOcupados.add(num);
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("No se pudo cargar estado, mostrando todos disponibles");
+    }
+
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const contenido = document.getElementById("contenido");
+    let html = '<div class="grid">';
+
+    for (let i = 1; i <= TOTAL; i++) {
+      const ocupado = numerosOcupados.has(i);
+      const selec = seleccionados.has(i);
+      let cls = ocupado ? "ocupado" : selec ? "seleccionado" : "disponible";
+      let tag = ocupado ? "ocupado" : selec ? "✓" : "";
+      let onclick = ocupado ? "" : `onclick="toggle(${i})"`;
+
+      html += `
+        <button id="n${i}" class="num-btn ${cls}" ${onclick}>
+          ${String(i).padStart(3,"0")}
+          ${tag ? `<span class="tag">${tag}</span>` : ""}
+        </button>`;
+    }
+
+    html += '</div><div class="espaciado"></div>';
+    contenido.innerHTML = html;
+    actualizarBarra();
+  }
+
+  function toggle(num) {
+    if (numerosOcupados.has(num)) return;
+
+    const btn = document.getElementById("n" + num);
+
+    if (seleccionados.has(num)) {
+      seleccionados.delete(num);
+      btn.className = "num-btn disponible";
+      btn.innerHTML = String(num).padStart(3,"0");
+    } else {
+      seleccionados.add(num);
+      btn.className = "num-btn seleccionado";
+      btn.innerHTML = String(num).padStart(3,"0") + '<span class="tag">✓</span>';
+    }
+
+    actualizarBarra();
+  }
+
+  function actualizarBarra() {
+    const n = seleccionados.size;
+    const btnEnviar = document.getElementById("btn-enviar");
+    const countEl = document.getElementById("count");
+    const totalEl = document.getElementById("total");
+    const previewEl = document.getElementById("nums-preview");
+
+    countEl.innerHTML = `${n} <span>${n === 1 ? "número seleccionado" : "números seleccionados"}</span>`;
+    totalEl.textContent = n > 0 ? `Total a pagar: S/ ${n * PRECIO}.00` : "";
+
+    const lista = Array.from(seleccionados).sort((a,b) => a-b);
+    previewEl.textContent = n > 0 ? "Nros: " + lista.map(x => String(x).padStart(3,"0")).join(", ") : "";
+
+    btnEnviar.disabled = n === 0;
+  }
+
+  function enviarWhatsApp() {
+    if (seleccionados.size === 0) return;
+
+    const lista = Array.from(seleccionados).sort((a,b) => a-b);
+    const nums = lista.map(x => String(x).padStart(3,"0")).join(", ");
+    const total = lista.length * PRECIO;
+
+    const msg =
+      `🎰 *RIFA — Solicitud de números*\n\n` +
+      `Hola, me gustaría apartar los siguientes números:\n\n` +
+      `*Números:* ${nums}\n` +
+      `*Cantidad:* ${lista.length}\n` +
+      `*Total:* S/ ${total}.00\n\n` +
+      `Por favor confirmar disponibilidad. ¡Gracias! 😊`;
+
+    const url = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  }
+
+  cargar();
+</script>
+</body>
+</html>
