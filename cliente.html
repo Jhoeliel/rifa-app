@@ -300,12 +300,12 @@
     const total = lista.length * PRECIO;
 
     const msg =
-      `🎰 *RIFA — Solicitud de números*\n\n` +
+      `🎟 *RIFA — Solicitud de números*\n\n` +
       `Hola, me gustaría apartar los siguientes números:\n\n` +
       `*Números:* ${nums}\n` +
       `*Cantidad:* ${lista.length}\n` +
       `*Total:* S/ ${total}.00\n\n` +
-      `Por favor confirmar disponibilidad. ¡Gracias! 😊`;
+      `Por favor confirmar disponibilidad. ¡Gracias!`;
 
     const url = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank");
