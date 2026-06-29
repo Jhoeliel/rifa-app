@@ -1,4 +1,4 @@
-# 🎰 Rifa App
+# 🎰 Rifa App 
 
 Control de rifas de 150 números con sorteo animado, sincronización en tiempo real vía Google Sheets y exportación a Excel.
 
